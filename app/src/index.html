@@ -8,5 +8,13 @@
 </head>
 <body>
     <h1>Websocket Server</h1>
+
+    <script>
+        let ws = new WebSocket("ws://localhost:8081");
+        ws.onmessage = message => console.log(`Received: ${message.data}`);
+        ws.onopen = () => {
+            ws.send("Hello! I'm client")
+        }
+    </script>
 </body>
 </html>

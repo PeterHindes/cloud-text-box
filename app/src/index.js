@@ -16,7 +16,7 @@ const httpserver = http.createServer(function(request, response) {
         if (err) {
             return console.log(err);
         }
-        console.log(data);
+        // console.log(data);
         response.write(data);
         response.end();
     });
@@ -32,9 +32,31 @@ httpserver.listen(8081, () => console.log("My server is listening on port 8081")
 
 //Object to manage connection state
 
-function Handler(con) {
+function Handler(con,position) {
     this.con = con;
+    this.con.on("close", () => {
+        console.log("CLOSED!!!")
+        // Remove self from connection list
+        // console.log(connections);
+        // console.log(
+            connections.splice(position,1)
+        // );
+        // console.log(connections);
+    })
+    this.con.on("message", message => {
+        console.log(`${APPID} Received message: ${message.utf8Data}`)
+        if (message.utf8Data.split("\0")[0] == "update:"){
+            this.updateTxt(message.utf8Data.replace("update:\0",""));
+        }
+    });
+
     this.authenticatedAs = -1;
+
+    this.txtBoxContent = "";
+
+    this.updateTxt = async function(txtU) {
+        this.txtBoxContent = txtU;
+    }
     
     this.authenticate = async function(uname,pass) {
         // Your authentication code
@@ -57,31 +79,9 @@ websocket.on("request", request=> {
 
     const con = request.accept(null, request.origin)
     console.log("open");
-    con.on("close", () => console.log("CLOSED!!!"))
-
-    const hand = new Handler(con);
-    // When someone sends us stuff
-    con.on("message", message => {
-        console.log(`${APPID} Received message: ${message.utf8Data}`)
-    });
-
-
-
+    
     con.send(`Connected successfully to server ${APPID}`);
-    let m = '[50000,50,"Wow You Are Crazy",false,null]';
-    con.send("Hello World");
+    
+    const hand = new Handler(con, connections.length);
     connections.push(hand);
 })
-  
-//client code 
-//let ws = new WebSocket("ws://localhost:8080");
-//ws.onmessage = message => console.log(`Received: ${message.data}`);
-//ws.send("Hello! I'm client")
-
-
-/*
-    //code clean up after closing connection
-    subscriber.unsubscribe();
-    subscriber.quit();
-    publisher.quit();
-    */
