@@ -16,24 +16,25 @@
 	}
 	function handleUpdate(){
 		console.log("Update");
+		let insert = "";
 		for(let i = 0; i < (txtBox.length > lastTxt.length ? txtBox.length : lastTxt.length); i++){
 			if (txtBox[i] !== lastTxt[i]) {
 				console.log("Diff "+txtBox[i] +" vs "+ lastTxt[i]);
 				if (txtBox.length > lastTxt.length){
-					ws.send("update\0"+txtBox[i]+"\0"+parseInt(i));
+					insert += txtBox[i];
 				} else {
-					ws.send("update\0\b\0"+parseInt(i));
+					insert += "\b";
 				}
-				break;
 			}
 		}
-		// lastTxt = txtBox;
+		ws.send("update\0"+insert+"\0"+parseInt(i));
 		txtBox = lastTxt;
 	}
 </script>
 
 <main>
 	<input bind:value={txtBox} on:input={handleUpdate}>
+	<input>
 	<p>{gotfromServer}</p>
 </main>
 
